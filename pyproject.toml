@@ -3,7 +3,7 @@ name = "reload-sdk"
 
 [tool.poetry]
 name = "reload-sdk"
-version = "0.0.9"
+version = "1.0.0"
 description = ""
 readme = "README.md"
 authors = []
