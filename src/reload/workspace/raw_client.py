@@ -162,6 +162,130 @@ class RawWorkspaceClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
+    def whoami(
+        self, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[ResolvedIdentityEnvelope]:
+        """
+        Return the authenticated caller's own identity, resolved from the API key — `{ id, kind: "user" | "agent", displayName, handle }`. Use this to get your OWN identity id (e.g. for `stated_by_identity_id` on `remember-memory` / `supersede-memory`, or the `identity_id` for `bootstrap-context`) without needing a handle or email. The counterpart to `resolve-identity`, which resolves OTHER members by `@handle`/email.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ResolvedIdentityEnvelope]
+            Success
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "v1/agent/whoami",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ResolvedIdentityEnvelope,
+                    parse_obj_as(
+                        type_=ResolvedIdentityEnvelope,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 503:
+                raise ServiceUnavailableError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
     def verify_connection(
         self, *, token: str, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[VerifyConnectionEnvelope]:
@@ -451,6 +575,130 @@ class AsyncRawWorkspaceClient:
                 "handle": handle,
                 "email": email,
             },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ResolvedIdentityEnvelope,
+                    parse_obj_as(
+                        type_=ResolvedIdentityEnvelope,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 503:
+                raise ServiceUnavailableError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def whoami(
+        self, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[ResolvedIdentityEnvelope]:
+        """
+        Return the authenticated caller's own identity, resolved from the API key — `{ id, kind: "user" | "agent", displayName, handle }`. Use this to get your OWN identity id (e.g. for `stated_by_identity_id` on `remember-memory` / `supersede-memory`, or the `identity_id` for `bootstrap-context`) without needing a handle or email. The counterpart to `resolve-identity`, which resolves OTHER members by `@handle`/email.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ResolvedIdentityEnvelope]
+            Success
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "v1/agent/whoami",
+            method="GET",
             request_options=request_options,
         )
         try:

@@ -17,7 +17,9 @@ from ..errors.service_unavailable_error import ServiceUnavailableError
 from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
 from ..types.download_target_envelope import DownloadTargetEnvelope
+from ..types.file_chunk_envelope import FileChunkEnvelope
 from ..types.reload_error import ReloadError
+from ..types.share_file_envelope import ShareFileEnvelope
 from ..types.upload_target_envelope import UploadTargetEnvelope
 
 # this is used as the default value for optional parameters
@@ -312,6 +314,307 @@ class RawFilesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
+    def share_file(
+        self,
+        *,
+        channel_id: str,
+        file_name: str,
+        mime_type: str,
+        content_text: typing.Optional[str] = OMIT,
+        content_base64: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ShareFileEnvelope]:
+        """
+        Share a small file in a channel by sending its bytes inline (≤1 MB). Provide either `contentText` (for text files) or `contentBase64` (for binary) — not both. Returns { attachmentId, name, sizeBytes, mimeType }: pass attachmentId in send-message's `attachmentIds` to attach it to a message. For larger or binary files use request-file-upload (presigned PUT) instead. You must be a member of the channel.
+
+        Parameters
+        ----------
+        channel_id : str
+            The channel to share the file in.
+
+        file_name : str
+            File name with extension (e.g. "report.md").
+
+        mime_type : str
+            MIME type. Allowed: images, text/code, application/pdf, json, xml, yaml, zip, gzip.
+
+        content_text : typing.Optional[str]
+            File content as UTF-8 text (for text files). Provide this OR contentBase64.
+
+        content_base64 : typing.Optional[str]
+            File content as base64 (for binary). Provide this OR contentText.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ShareFileEnvelope]
+            Success
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "v1/agent/share-file",
+            method="POST",
+            json={
+                "channelId": channel_id,
+                "fileName": file_name,
+                "mimeType": mime_type,
+                "contentText": content_text,
+                "contentBase64": content_base64,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ShareFileEnvelope,
+                    parse_obj_as(
+                        type_=ShareFileEnvelope,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 503:
+                raise ServiceUnavailableError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def read_file(
+        self,
+        *,
+        channel_id: str,
+        attachment_id: str,
+        offset: typing.Optional[float] = None,
+        max_bytes: typing.Optional[float] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[FileChunkEnvelope]:
+        """
+        Read a shared file’s content through MCP, in chunks. Get the attachmentId from a message’s attachments (see get-messages). Returns { name, mimeType, sizeBytes, offset, bytesReturned, eof, nextOffset, encoding: "base64", data, text? }: decode `data` (base64); for text files `text` is the decoded UTF-8. To read a whole file, loop until `eof` is true, passing the previous response’s `nextOffset` as `offset`. Best for text/code/small files — for large binaries use request-file-download (presigned URL) instead. You must be a member of the channel.
+
+        Parameters
+        ----------
+        channel_id : str
+
+        attachment_id : str
+
+        offset : typing.Optional[float]
+
+        max_bytes : typing.Optional[float]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[FileChunkEnvelope]
+            Success
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "v1/agent/read-file",
+            method="GET",
+            params={
+                "channelId": channel_id,
+                "attachmentId": attachment_id,
+                "offset": offset,
+                "maxBytes": max_bytes,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    FileChunkEnvelope,
+                    parse_obj_as(
+                        type_=FileChunkEnvelope,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 503:
+                raise ServiceUnavailableError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
 
 class AsyncRawFilesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
@@ -504,6 +807,307 @@ class AsyncRawFilesClient:
                     DownloadTargetEnvelope,
                     parse_obj_as(
                         type_=DownloadTargetEnvelope,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 503:
+                raise ServiceUnavailableError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def share_file(
+        self,
+        *,
+        channel_id: str,
+        file_name: str,
+        mime_type: str,
+        content_text: typing.Optional[str] = OMIT,
+        content_base64: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ShareFileEnvelope]:
+        """
+        Share a small file in a channel by sending its bytes inline (≤1 MB). Provide either `contentText` (for text files) or `contentBase64` (for binary) — not both. Returns { attachmentId, name, sizeBytes, mimeType }: pass attachmentId in send-message's `attachmentIds` to attach it to a message. For larger or binary files use request-file-upload (presigned PUT) instead. You must be a member of the channel.
+
+        Parameters
+        ----------
+        channel_id : str
+            The channel to share the file in.
+
+        file_name : str
+            File name with extension (e.g. "report.md").
+
+        mime_type : str
+            MIME type. Allowed: images, text/code, application/pdf, json, xml, yaml, zip, gzip.
+
+        content_text : typing.Optional[str]
+            File content as UTF-8 text (for text files). Provide this OR contentBase64.
+
+        content_base64 : typing.Optional[str]
+            File content as base64 (for binary). Provide this OR contentText.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ShareFileEnvelope]
+            Success
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "v1/agent/share-file",
+            method="POST",
+            json={
+                "channelId": channel_id,
+                "fileName": file_name,
+                "mimeType": mime_type,
+                "contentText": content_text,
+                "contentBase64": content_base64,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ShareFileEnvelope,
+                    parse_obj_as(
+                        type_=ShareFileEnvelope,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 503:
+                raise ServiceUnavailableError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        ReloadError,
+                        parse_obj_as(
+                            type_=ReloadError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def read_file(
+        self,
+        *,
+        channel_id: str,
+        attachment_id: str,
+        offset: typing.Optional[float] = None,
+        max_bytes: typing.Optional[float] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[FileChunkEnvelope]:
+        """
+        Read a shared file’s content through MCP, in chunks. Get the attachmentId from a message’s attachments (see get-messages). Returns { name, mimeType, sizeBytes, offset, bytesReturned, eof, nextOffset, encoding: "base64", data, text? }: decode `data` (base64); for text files `text` is the decoded UTF-8. To read a whole file, loop until `eof` is true, passing the previous response’s `nextOffset` as `offset`. Best for text/code/small files — for large binaries use request-file-download (presigned URL) instead. You must be a member of the channel.
+
+        Parameters
+        ----------
+        channel_id : str
+
+        attachment_id : str
+
+        offset : typing.Optional[float]
+
+        max_bytes : typing.Optional[float]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[FileChunkEnvelope]
+            Success
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "v1/agent/read-file",
+            method="GET",
+            params={
+                "channelId": channel_id,
+                "attachmentId": attachment_id,
+                "offset": offset,
+                "maxBytes": max_bytes,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    FileChunkEnvelope,
+                    parse_obj_as(
+                        type_=FileChunkEnvelope,  # type: ignore
                         object_=_response.json(),
                     ),
                 )

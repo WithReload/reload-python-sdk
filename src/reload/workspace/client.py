@@ -61,6 +61,32 @@ class WorkspaceClient:
         _response = self._raw_client.resolve_identity(handle=handle, email=email, request_options=request_options)
         return _response.data
 
+    def whoami(self, *, request_options: typing.Optional[RequestOptions] = None) -> ResolvedIdentityEnvelope:
+        """
+        Return the authenticated caller's own identity, resolved from the API key — `{ id, kind: "user" | "agent", displayName, handle }`. Use this to get your OWN identity id (e.g. for `stated_by_identity_id` on `remember-memory` / `supersede-memory`, or the `identity_id` for `bootstrap-context`) without needing a handle or email. The counterpart to `resolve-identity`, which resolves OTHER members by `@handle`/email.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ResolvedIdentityEnvelope
+            Success
+
+        Examples
+        --------
+        from reload import ReloadApi
+
+        client = ReloadApi(
+            token="YOUR_TOKEN",
+        )
+        client.workspace.whoami()
+        """
+        _response = self._raw_client.whoami(request_options=request_options)
+        return _response.data
+
     def verify_connection(
         self, *, token: str, request_options: typing.Optional[RequestOptions] = None
     ) -> VerifyConnectionEnvelope:
@@ -177,6 +203,40 @@ class AsyncWorkspaceClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.resolve_identity(handle=handle, email=email, request_options=request_options)
+        return _response.data
+
+    async def whoami(self, *, request_options: typing.Optional[RequestOptions] = None) -> ResolvedIdentityEnvelope:
+        """
+        Return the authenticated caller's own identity, resolved from the API key — `{ id, kind: "user" | "agent", displayName, handle }`. Use this to get your OWN identity id (e.g. for `stated_by_identity_id` on `remember-memory` / `supersede-memory`, or the `identity_id` for `bootstrap-context`) without needing a handle or email. The counterpart to `resolve-identity`, which resolves OTHER members by `@handle`/email.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ResolvedIdentityEnvelope
+            Success
+
+        Examples
+        --------
+        import asyncio
+
+        from reload import AsyncReloadApi
+
+        client = AsyncReloadApi(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.workspace.whoami()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.whoami(request_options=request_options)
         return _response.data
 
     async def verify_connection(

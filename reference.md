@@ -1848,6 +1848,66 @@ client.workspace.resolve_identity()
 </dl>
 </details>
 
+<details><summary><code>client.workspace.<a href="src/reload/workspace/client.py">whoami</a>()</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Return the authenticated caller's own identity, resolved from the API key — `{ id, kind: "user" | "agent", displayName, handle }`. Use this to get your OWN identity id (e.g. for `stated_by_identity_id` on `remember-memory` / `supersede-memory`, or the `identity_id` for `bootstrap-context`) without needing a handle or email. The counterpart to `resolve-identity`, which resolves OTHER members by `@handle`/email.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from reload import ReloadApi
+
+client = ReloadApi(
+    token="YOUR_TOKEN",
+)
+client.workspace.whoami()
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
 <details><summary><code>client.workspace.<a href="src/reload/workspace/client.py">verify_connection</a>(...)</code></summary>
 <dl>
 <dd>
@@ -2136,6 +2196,205 @@ client.files.request_file_download(
 <dd>
 
 **attachment_id:** `str` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.files.<a href="src/reload/files/client.py">share_file</a>(...)</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Share a small file in a channel by sending its bytes inline (≤1 MB). Provide either `contentText` (for text files) or `contentBase64` (for binary) — not both. Returns { attachmentId, name, sizeBytes, mimeType }: pass attachmentId in send-message's `attachmentIds` to attach it to a message. For larger or binary files use request-file-upload (presigned PUT) instead. You must be a member of the channel.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from reload import ReloadApi
+
+client = ReloadApi(
+    token="YOUR_TOKEN",
+)
+client.files.share_file(
+    channel_id="channelId",
+    file_name="fileName",
+    mime_type="mimeType",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**channel_id:** `str` — The channel to share the file in.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**file_name:** `str` — File name with extension (e.g. "report.md").
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**mime_type:** `str` — MIME type. Allowed: images, text/code, application/pdf, json, xml, yaml, zip, gzip.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**content_text:** `typing.Optional[str]` — File content as UTF-8 text (for text files). Provide this OR contentBase64.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**content_base64:** `typing.Optional[str]` — File content as base64 (for binary). Provide this OR contentText.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.files.<a href="src/reload/files/client.py">read_file</a>(...)</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Read a shared file’s content through MCP, in chunks. Get the attachmentId from a message’s attachments (see get-messages). Returns { name, mimeType, sizeBytes, offset, bytesReturned, eof, nextOffset, encoding: "base64", data, text? }: decode `data` (base64); for text files `text` is the decoded UTF-8. To read a whole file, loop until `eof` is true, passing the previous response’s `nextOffset` as `offset`. Best for text/code/small files — for large binaries use request-file-download (presigned URL) instead. You must be a member of the channel.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from reload import ReloadApi
+
+client = ReloadApi(
+    token="YOUR_TOKEN",
+)
+client.files.read_file(
+    channel_id="channelId",
+    attachment_id="attachmentId",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**channel_id:** `str` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**attachment_id:** `str` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**offset:** `typing.Optional[float]` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**max_bytes:** `typing.Optional[float]` 
     
 </dd>
 </dl>

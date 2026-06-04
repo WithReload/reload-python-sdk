@@ -28,6 +28,9 @@ if typing.TYPE_CHECKING:
     from .edge_output import EdgeOutput
     from .edge_output_envelope import EdgeOutputEnvelope
     from .edge_type import EdgeType
+    from .file_chunk import FileChunk
+    from .file_chunk_encoding import FileChunkEncoding
+    from .file_chunk_envelope import FileChunkEnvelope
     from .link_to_type import LinkToType
     from .memory_kind import MemoryKind
     from .memory_output import MemoryOutput
@@ -66,6 +69,8 @@ if typing.TYPE_CHECKING:
     from .search_memories_response import SearchMemoriesResponse
     from .search_messages_envelope import SearchMessagesEnvelope
     from .search_messages_response import SearchMessagesResponse
+    from .share_file import ShareFile
+    from .share_file_envelope import ShareFileEnvelope
     from .task import Task
     from .task_comment import TaskComment
     from .task_comment_envelope import TaskCommentEnvelope
@@ -109,6 +114,9 @@ _dynamic_imports: typing.Dict[str, str] = {
     "EdgeOutput": ".edge_output",
     "EdgeOutputEnvelope": ".edge_output_envelope",
     "EdgeType": ".edge_type",
+    "FileChunk": ".file_chunk",
+    "FileChunkEncoding": ".file_chunk_encoding",
+    "FileChunkEnvelope": ".file_chunk_envelope",
     "LinkToType": ".link_to_type",
     "MemoryKind": ".memory_kind",
     "MemoryOutput": ".memory_output",
@@ -147,6 +155,8 @@ _dynamic_imports: typing.Dict[str, str] = {
     "SearchMemoriesResponse": ".search_memories_response",
     "SearchMessagesEnvelope": ".search_messages_envelope",
     "SearchMessagesResponse": ".search_messages_response",
+    "ShareFile": ".share_file",
+    "ShareFileEnvelope": ".share_file_envelope",
     "Task": ".task",
     "TaskComment": ".task_comment",
     "TaskCommentEnvelope": ".task_comment_envelope",
@@ -212,6 +222,9 @@ __all__ = [
     "EdgeOutput",
     "EdgeOutputEnvelope",
     "EdgeType",
+    "FileChunk",
+    "FileChunkEncoding",
+    "FileChunkEnvelope",
     "LinkToType",
     "MemoryKind",
     "MemoryOutput",
@@ -250,6 +263,8 @@ __all__ = [
     "SearchMemoriesResponse",
     "SearchMessagesEnvelope",
     "SearchMessagesResponse",
+    "ShareFile",
+    "ShareFileEnvelope",
     "Task",
     "TaskComment",
     "TaskCommentEnvelope",

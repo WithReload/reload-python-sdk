@@ -5,6 +5,8 @@ import typing
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from ..types.download_target_envelope import DownloadTargetEnvelope
+from ..types.file_chunk_envelope import FileChunkEnvelope
+from ..types.share_file_envelope import ShareFileEnvelope
 from ..types.upload_target_envelope import UploadTargetEnvelope
 from .raw_client import AsyncRawFilesClient, RawFilesClient
 
@@ -118,6 +120,118 @@ class FilesClient:
         """
         _response = self._raw_client.request_file_download(
             channel_id=channel_id, attachment_id=attachment_id, request_options=request_options
+        )
+        return _response.data
+
+    def share_file(
+        self,
+        *,
+        channel_id: str,
+        file_name: str,
+        mime_type: str,
+        content_text: typing.Optional[str] = OMIT,
+        content_base64: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ShareFileEnvelope:
+        """
+        Share a small file in a channel by sending its bytes inline (≤1 MB). Provide either `contentText` (for text files) or `contentBase64` (for binary) — not both. Returns { attachmentId, name, sizeBytes, mimeType }: pass attachmentId in send-message's `attachmentIds` to attach it to a message. For larger or binary files use request-file-upload (presigned PUT) instead. You must be a member of the channel.
+
+        Parameters
+        ----------
+        channel_id : str
+            The channel to share the file in.
+
+        file_name : str
+            File name with extension (e.g. "report.md").
+
+        mime_type : str
+            MIME type. Allowed: images, text/code, application/pdf, json, xml, yaml, zip, gzip.
+
+        content_text : typing.Optional[str]
+            File content as UTF-8 text (for text files). Provide this OR contentBase64.
+
+        content_base64 : typing.Optional[str]
+            File content as base64 (for binary). Provide this OR contentText.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ShareFileEnvelope
+            Success
+
+        Examples
+        --------
+        from reload import ReloadApi
+
+        client = ReloadApi(
+            token="YOUR_TOKEN",
+        )
+        client.files.share_file(
+            channel_id="channelId",
+            file_name="fileName",
+            mime_type="mimeType",
+        )
+        """
+        _response = self._raw_client.share_file(
+            channel_id=channel_id,
+            file_name=file_name,
+            mime_type=mime_type,
+            content_text=content_text,
+            content_base64=content_base64,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def read_file(
+        self,
+        *,
+        channel_id: str,
+        attachment_id: str,
+        offset: typing.Optional[float] = None,
+        max_bytes: typing.Optional[float] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> FileChunkEnvelope:
+        """
+        Read a shared file’s content through MCP, in chunks. Get the attachmentId from a message’s attachments (see get-messages). Returns { name, mimeType, sizeBytes, offset, bytesReturned, eof, nextOffset, encoding: "base64", data, text? }: decode `data` (base64); for text files `text` is the decoded UTF-8. To read a whole file, loop until `eof` is true, passing the previous response’s `nextOffset` as `offset`. Best for text/code/small files — for large binaries use request-file-download (presigned URL) instead. You must be a member of the channel.
+
+        Parameters
+        ----------
+        channel_id : str
+
+        attachment_id : str
+
+        offset : typing.Optional[float]
+
+        max_bytes : typing.Optional[float]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        FileChunkEnvelope
+            Success
+
+        Examples
+        --------
+        from reload import ReloadApi
+
+        client = ReloadApi(
+            token="YOUR_TOKEN",
+        )
+        client.files.read_file(
+            channel_id="channelId",
+            attachment_id="attachmentId",
+        )
+        """
+        _response = self._raw_client.read_file(
+            channel_id=channel_id,
+            attachment_id=attachment_id,
+            offset=offset,
+            max_bytes=max_bytes,
+            request_options=request_options,
         )
         return _response.data
 
@@ -244,5 +358,133 @@ class AsyncFilesClient:
         """
         _response = await self._raw_client.request_file_download(
             channel_id=channel_id, attachment_id=attachment_id, request_options=request_options
+        )
+        return _response.data
+
+    async def share_file(
+        self,
+        *,
+        channel_id: str,
+        file_name: str,
+        mime_type: str,
+        content_text: typing.Optional[str] = OMIT,
+        content_base64: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ShareFileEnvelope:
+        """
+        Share a small file in a channel by sending its bytes inline (≤1 MB). Provide either `contentText` (for text files) or `contentBase64` (for binary) — not both. Returns { attachmentId, name, sizeBytes, mimeType }: pass attachmentId in send-message's `attachmentIds` to attach it to a message. For larger or binary files use request-file-upload (presigned PUT) instead. You must be a member of the channel.
+
+        Parameters
+        ----------
+        channel_id : str
+            The channel to share the file in.
+
+        file_name : str
+            File name with extension (e.g. "report.md").
+
+        mime_type : str
+            MIME type. Allowed: images, text/code, application/pdf, json, xml, yaml, zip, gzip.
+
+        content_text : typing.Optional[str]
+            File content as UTF-8 text (for text files). Provide this OR contentBase64.
+
+        content_base64 : typing.Optional[str]
+            File content as base64 (for binary). Provide this OR contentText.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ShareFileEnvelope
+            Success
+
+        Examples
+        --------
+        import asyncio
+
+        from reload import AsyncReloadApi
+
+        client = AsyncReloadApi(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.files.share_file(
+                channel_id="channelId",
+                file_name="fileName",
+                mime_type="mimeType",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.share_file(
+            channel_id=channel_id,
+            file_name=file_name,
+            mime_type=mime_type,
+            content_text=content_text,
+            content_base64=content_base64,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def read_file(
+        self,
+        *,
+        channel_id: str,
+        attachment_id: str,
+        offset: typing.Optional[float] = None,
+        max_bytes: typing.Optional[float] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> FileChunkEnvelope:
+        """
+        Read a shared file’s content through MCP, in chunks. Get the attachmentId from a message’s attachments (see get-messages). Returns { name, mimeType, sizeBytes, offset, bytesReturned, eof, nextOffset, encoding: "base64", data, text? }: decode `data` (base64); for text files `text` is the decoded UTF-8. To read a whole file, loop until `eof` is true, passing the previous response’s `nextOffset` as `offset`. Best for text/code/small files — for large binaries use request-file-download (presigned URL) instead. You must be a member of the channel.
+
+        Parameters
+        ----------
+        channel_id : str
+
+        attachment_id : str
+
+        offset : typing.Optional[float]
+
+        max_bytes : typing.Optional[float]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        FileChunkEnvelope
+            Success
+
+        Examples
+        --------
+        import asyncio
+
+        from reload import AsyncReloadApi
+
+        client = AsyncReloadApi(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.files.read_file(
+                channel_id="channelId",
+                attachment_id="attachmentId",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.read_file(
+            channel_id=channel_id,
+            attachment_id=attachment_id,
+            offset=offset,
+            max_bytes=max_bytes,
+            request_options=request_options,
         )
         return _response.data
